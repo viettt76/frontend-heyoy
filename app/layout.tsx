@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/providers/theme-provider';
 import I18nProvider from '@/providers/i18n-provider';
 import QueryProvider from '@/providers/query-provider';
 import StoreProvider from '@/providers/store-provider';
+
+import './globals.css';
 import InitLoadingProvider from '@/providers/init-loading-provider';
 
 const geistSans = Geist({

@@ -8,6 +8,7 @@ interface FormTextFieldProps<T extends FieldValues> {
     name: FieldPath<T>;
     control: Control<T>;
     icon?: ReactNode;
+    showPasswordToggle?: boolean;
     type?: 'text' | 'email' | 'password';
     styleInput?: string;
     placeholder?: string;
@@ -17,6 +18,7 @@ export default function FormTextField<T extends FieldValues>({
     name,
     control,
     icon,
+    showPasswordToggle = true,
     type,
     styleInput,
     placeholder,
@@ -30,13 +32,13 @@ export default function FormTextField<T extends FieldValues>({
             control={control}
             name={name}
             render={({ field }) => (
-                <FormItem className="w-4/5">
-                    <FormControl className="w-full">
-                        <div className="w-full border-b pb-2 flex items-center mt-6">
+                <FormItem className="w-full">
+                    <FormControl>
+                        <div className="w-full flex items-center">
                             {icon}
                             <input
                                 className={cn(
-                                    'w-4/5 border-none outline-none focus:shadow-none focus:ring-transparent',
+                                    'flex-1 border-none outline-none focus:shadow-none focus:ring-transparent',
                                     styleInput,
                                 )}
                                 type={isPassword && isShowPassword ? 'text' : type}
@@ -44,10 +46,11 @@ export default function FormTextField<T extends FieldValues>({
                                 {...field}
                             />
                             {isPassword &&
+                                showPasswordToggle &&
                                 (isShowPassword ? (
-                                    <Eye onClick={() => setIsShowPassword(false)} />
+                                    <Eye className="w-5 h-5" onClick={() => setIsShowPassword(false)} />
                                 ) : (
-                                    <EyeOff onClick={() => setIsShowPassword(true)} />
+                                    <EyeOff className="w-5 h-5" onClick={() => setIsShowPassword(true)} />
                                 ))}
                         </div>
                     </FormControl>

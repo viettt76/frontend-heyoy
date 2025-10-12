@@ -1,4 +1,4 @@
-import { UserGender, UserRole } from './user';
+import { UserGender, UserRole } from '../lib/enums';
 
 export interface LoginDto {
     username: string;
@@ -10,5 +10,4 @@ export interface SignupDto {
     firstName: string;
     lastName: string;
     gender: UserGender;
-    role: UserRole;
 }

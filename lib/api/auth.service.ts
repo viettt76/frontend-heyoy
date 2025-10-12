@@ -8,3 +8,11 @@ export const loginService = (data: LoginDto) => {
 export const signupService = (data: SignupDto) => {
     return apiClient.post('/auth/signup', data);
 };
+
+export const logoutService = () => {
+    return apiClient.post('/auth/logout');
+};
+
+export const refreshTokenService = () => {
+    return apiClient.post('/auth/refresh');
+};

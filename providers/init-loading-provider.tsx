@@ -1,19 +1,39 @@
-import { getMyInfo } from '@/lib/api/user.service';
-import { useQuery } from '@tanstack/react-query';
+'use client';
+
+import apiClient from '@/lib/api/api-client';
+import { logoutService, refreshTokenService } from '@/lib/api/auth.service';
+import { setAccessToken } from '@/store/features/auth/authSlice';
+import { fetchCurrentUser } from '@/store/features/users/userSlice';
+import { useAppDispatch } from '@/store/hooks';
 import { ReactNode, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 
 export default function InitLoadingProvider({ children }: { children: ReactNode }) {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
-    const { data } = useQuery({
-        queryKey: ['myInfo'],
-        queryFn: getMyInfo,
-    });
+    // const handleLogout = async () => {
+    //     try {
+    //         await logoutService();
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+    // apiClient.setHandleLogout = handleLogout;
 
     useEffect(() => {
-        // dispatch()
-    }, [data, dispatch]);
+        const initAuth = async () => {
+            try {
+                const res = await refreshTokenService();
+                dispatch(setAccessToken(res.data?.accessToken));
+
+                fetchCurrentUser();
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        initAuth();
+    }, [dispatch]);
 
     return children;
 }
