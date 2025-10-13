@@ -1,9 +1,0 @@
-{
-    "auth": {
-        "login": "Log in",
-        "signup": "Sign up"
-    },
-    "feed": {
-        "newPost": "What's on your mind?"
-    }
-}

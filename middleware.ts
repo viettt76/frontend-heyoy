@@ -3,15 +3,21 @@ import { paths } from './lib/constants';
 
 export default function middleware(req: NextRequest) {
     const refreshToken = req.cookies.get('refresh_token')?.value;
-    const url = new URL(req.url);
+    const path = req.nextUrl.pathname;
 
-    const publicRoutes = [paths.login, paths.signup];
-    const isAdminPage = url.pathname.includes('/admin');
+    const publicPaths = [paths.login, paths.signup];
 
-    if (refreshToken && publicRoutes.includes(url.pathname)) {
-        return NextResponse.redirect(new URL(paths.login, req.url));
-    }
-    if (!refreshToken && !publicRoutes.includes(url.pathname)) {
+    if (refreshToken && publicPaths.includes(path)) {
         return NextResponse.redirect(new URL(paths.home, req.url));
     }
+
+    if (!refreshToken && !publicPaths.includes(path)) {
+        return NextResponse.redirect(new URL(paths.login, req.url));
+    }
+
+    return NextResponse.next();
 }
+
+export const config = {
+    matcher: ['/((?!_next/static|_next/image|favicon.ico|api|images|uploads|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+};

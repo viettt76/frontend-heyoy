@@ -1,8 +1,7 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, HttpStatusCode } from 'axios';
 import { AppStore } from '@/store';
-import { logout, setAccessToken } from '@/store/features/auth/authSlice';
+import { setAccessToken } from '@/store/features/auth/authSlice';
 import { EnhancedStore } from '@reduxjs/toolkit';
-import { clearUser } from '@/store/features/users/userSlice';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 
 class AxiosCustom {
     private instance: AxiosInstance;

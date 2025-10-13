@@ -11,7 +11,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     console.log(userInfo);
 
-    if (!userInfo.id) {
+    if (!userInfo?.id) {
         router.back();
         return null;
     }

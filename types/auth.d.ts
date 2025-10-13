@@ -1,4 +1,4 @@
-import { UserGender, UserRole } from '../lib/enums';
+import { UserGender } from '../lib/enums';
 
 export interface LoginDto {
     username: string;

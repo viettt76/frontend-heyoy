@@ -1,9 +1,0 @@
-{
-    "auth": {
-        "login": "Đăng nhập",
-        "signup": "Đăng ký"
-    },
-    "feed": {
-        "newPost": "Bạn đang nghĩ gì?"
-    }
-}

@@ -16,6 +16,7 @@ import { paths } from '@/lib/constants';
 import { useAppDispatch } from '@/store/hooks';
 import { setUserInfo } from '@/store/features/users/userSlice';
 import { setAccessToken } from '@/store/features/auth/authSlice';
+import { useTranslation } from 'react-i18next';
 
 const loginSchema = z.object({
     username: z.string().min(1, {
@@ -27,6 +28,8 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
+    const { t } = useTranslation();
+
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
@@ -75,7 +78,7 @@ export default function LoginPage() {
                     <div className="text-xl text-primary/80 text-center">Connection place</div>
                 </div>
                 <div className="flex-1 flex flex-col justify-center space-y-4">
-                    <div className="font-semibold text-2xl text-center">Đăng nhập</div>
+                    <div className="font-semibold text-2xl text-center">{t('auth:login')}</div>
                     <Form {...form}>
                         <form className="w-full flex flex-col items-center" onSubmit={form.handleSubmit(onSubmit)}>
                             <div className="flex flex-col space-y-4">
@@ -95,7 +98,7 @@ export default function LoginPage() {
                                 />
                             </div>
                             <Button className="w-3/5 mt-6 py-1 bg-primary text-background rounded-full" type="submit">
-                                Đăng nhập
+                                {t('common:test')}
                             </Button>
                             <div className="text-sm mt-2">
                                 Bạn chưa có tài khoản?

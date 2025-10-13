@@ -1,21 +1,17 @@
 'use client';
 
-import { paths } from '@/lib/constants';
-import { userInfoSelector } from '@/store/features/users/userSlice';
-import { useAppSelector } from '@/store/hooks';
-import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import ToggleLanguage from '@/components/shared/toggle-language';
+import ToggleTheme from '@/components/shared/toggle-theme';
+import { ReactNode } from 'react';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-    // const userInfo = useAppSelector(userInfoSelector);
-
-    // const router = useRouter();
-
-    // useEffect(() => {
-    //     if (userInfo?.id) {
-    //         router.push(paths.home);
-    //     }
-    // }, []);
-
-    return children;
+    return (
+        <div className="relative">
+            <div className="flex items-center space-x-4 absolute right-4 top-4">
+                <ToggleLanguage />
+                <ToggleTheme />
+            </div>
+            {children}
+        </div>
+    );
 }

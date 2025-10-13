@@ -4,9 +4,7 @@ import { ThemeProvider } from '@/providers/theme-provider';
 import I18nProvider from '@/providers/i18n-provider';
 import QueryProvider from '@/providers/query-provider';
 import StoreProvider from '@/providers/store-provider';
-
 import './globals.css';
-import InitLoadingProvider from '@/providers/init-loading-provider';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -34,9 +32,7 @@ export default async function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                     <I18nProvider>
                         <QueryProvider>
-                            <StoreProvider>
-                                <InitLoadingProvider>{children}</InitLoadingProvider>
-                            </StoreProvider>
+                            <StoreProvider>{children}</StoreProvider>
                         </QueryProvider>
                     </I18nProvider>
                 </ThemeProvider>

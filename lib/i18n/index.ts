@@ -1,18 +1,22 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from './resources/en.json';
-import vi from './resources/vi.json';
+import resourcesToBackend from 'i18next-resources-to-backend';
 
-const resources = {
-    en: { translation: en },
-    vi: { translation: vi },
-};
+const NS = ['auth', 'common'];
 
-i18n.use(initReactI18next).init({
-    resources,
-    lng: 'vi',
-    fallbackLng: 'vi',
-    interpolation: { escapeValue: false },
-});
+let userLang = 'vi';
+if (typeof window !== 'undefined') {
+    userLang = localStorage.getItem('i18nConfig') || 'vi';
+}
+
+i18n.use(resourcesToBackend((lng: string, ns: string) => import(`../../locales/${lng}/${ns}.json`)))
+    .use(initReactI18next)
+    .init({
+        lng: userLang,
+        fallbackLng: 'vi',
+        ns: NS,
+        defaultNS: 'common',
+        interpolation: { escapeValue: false },
+    });
 
 export default i18n;
