@@ -1,52 +1,77 @@
 import { AppStore } from '@/store';
 import { setAccessToken } from '@/store/features/auth/authSlice';
 import { EnhancedStore } from '@reduxjs/toolkit';
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { HttpStatusCode } from 'axios';
 
 class AxiosCustom {
     private instance: AxiosInstance;
-    private handleLogout?: () => Promise<void>;
+    private logout: (() => void) | null = null;
     private store!: AppStore;
+    private accessToken!: string;
 
     private isRefreshing = false;
     private failedQueue: Array<{ resolve: Function; reject: Function }> = [];
 
-    public get: AxiosInstance['get'];
-    public post: AxiosInstance['post'];
-    public put: AxiosInstance['put'];
-    public patch: AxiosInstance['patch'];
-    public delete: AxiosInstance['delete'];
-
     constructor() {
         const config: AxiosRequestConfig = {
             baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api`,
-            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
             timeout: 30 * 1000,
+            withCredentials: true,
         };
+        const instance = axios.create(config);
 
-        this.instance = axios.create(config);
+        this.instance = instance;
+    }
 
+    public init(store: EnhancedStore, accessToken: string, logoutHandler: () => void) {
+        this.logout = logoutHandler;
+        this.store = store;
+        this.accessToken = accessToken;
+
+        console.log(accessToken);
+
+        this.attachInterceptors();
+    }
+
+    private attachInterceptors() {
+        // Request interceptor
         this.instance.interceptors.request.use(
             (config) => {
-                const token = this.store.getState().auth.accessToken;
-                if (token) config.headers.Authorization = `Bearer ${token}`;
+                if (this.accessToken) {
+                    config.headers.Authorization = `Bearer ${this.accessToken}`;
+                }
                 return config;
             },
             (error) => Promise.reject(error),
         );
 
+        // Response interceptor
         this.instance.interceptors.response.use(
-            (response) => response,
-            async (error: AxiosError) => {
-                this.handleTokenRefresh(error);
+            (response: AxiosResponse) => response,
+            (error: AxiosError) => {
+                const { response } = error;
+
+                if (response?.status === 401 && !this.isRefreshing) {
+                    return this.handleTokenRefresh(error);
+                }
+
+                if (response?.status === HttpStatusCode.Forbidden) {
+                    if (this.logout) {
+                        this.logout();
+                    }
+                }
+
+                throw error;
             },
         );
+    }
 
-        this.get = this.instance.get.bind(this.instance);
-        this.post = this.instance.post.bind(this.instance);
-        this.put = this.instance.put.bind(this.instance);
-        this.patch = this.instance.patch.bind(this.instance);
-        this.delete = this.instance.delete.bind(this.instance);
+    public get getLogout() {
+        return this.logout;
     }
 
     async handleTokenRefresh(error: AxiosError) {
@@ -79,8 +104,8 @@ class AxiosCustom {
                 this.failedQueue = [];
 
                 //call logout
-                if (this.handleLogout) {
-                    this.handleLogout();
+                if (this.logout) {
+                    this.logout();
                 }
 
                 throw refreshError;
@@ -99,12 +124,92 @@ class AxiosCustom {
         }
     }
 
-    public set setHandleLogout(handleLogout: () => Promise<void>) {
-        this.handleLogout = handleLogout;
+    // Create
+    public post<D = any>(url: string): Promise<D>;
+    public post<D = any, R = any>(url: string, data: D, config?: AxiosRequestConfig<D>): Promise<R>;
+    public post<D = any, R = any>(
+        url: string,
+        data: D,
+        config: AxiosRequestConfig<D> & { integrity: true },
+    ): Promise<AxiosResponse<R, D>>;
+    public post<D, R>(url: string, data?: D, config: any = {}): Promise<unknown> {
+        const { integrity, ...rest } = config;
+        return new Promise((resolve, reject) => {
+            this.instance
+                .post<D, AxiosResponse<R>>(url, data, rest)
+                .then((response) => resolve(integrity ? response : response.data))
+                .catch((error: AxiosError) => {
+                    if (error.response) {
+                        reject(error.response.data);
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
     }
 
-    public set setStore(store: EnhancedStore) {
-        this.store = store;
+    public patch<D, R>(url: string, data?: D, config: any = {}): Promise<unknown> {
+        const { integrity, ...rest } = config;
+        return new Promise((resolve, reject) => {
+            this.instance
+                .patch<D, AxiosResponse<R>>(url, data, rest)
+                .then((response) => resolve(integrity ? response : response.data))
+                .catch((error: AxiosError) => {
+                    if (error.response) {
+                        reject(error.response.data);
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
+    }
+
+    // Read
+    public get<T = any, R = T, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R> {
+        return new Promise((resolve, reject) => {
+            this.instance
+                .get<T, AxiosResponse<R>, D>(url, config)
+                .then((response) => resolve(response.data))
+                .catch((error: AxiosError) => {
+                    if (error.response) {
+                        reject(error.response.data);
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
+    }
+
+    // Update
+    public put<D = any, R = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R> {
+        return new Promise((resolve, reject) => {
+            this.instance
+                .put<D, AxiosResponse<R>>(url, data, config)
+                .then((response) => resolve(response.data))
+                .catch((error: AxiosError) => {
+                    if (error.response) {
+                        reject(error.response.data);
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
+    }
+
+    // Delete
+    public delete<D = any, R = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R> {
+        return new Promise((resolve, reject) => {
+            this.instance
+                .delete<D, AxiosResponse<R>>(url, config)
+                .then((response) => resolve(response.data))
+                .catch((error: AxiosError) => {
+                    if (error.response) {
+                        reject(error.response.data);
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
     }
 }
 

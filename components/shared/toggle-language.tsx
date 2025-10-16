@@ -1,32 +1,17 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { languages } from '@/lib/constants';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
+import {
+    DrilldownMenuItem,
+    DrilldownMenuSub,
+    DrilldownMenuSubContent,
+    DrilldownMenuSubTrigger,
+} from './drilldown-menu';
 
 export default function ToggleLanguage() {
     const { i18n } = useTranslation();
-
-    const data = [
-        {
-            value: 'vi',
-            label: 'Tiếng Việt',
-            icon: '/images/flags/ic-flag-vi.svg',
-        },
-        {
-            value: 'en',
-            label: 'English',
-            icon: '/images/flags/ic-flag-en.svg',
-        },
-    ];
-
-    const currentLanguage = data.find((lng) => lng.value === i18n.language);
 
     const setLanguage = (language: string) => {
         i18n.changeLanguage(language);
@@ -34,25 +19,31 @@ export default function ToggleLanguage() {
     };
 
     return (
-        <>
-            {currentLanguage && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <Image src={currentLanguage.icon} alt="icon" width={30} height={10} />
-                            <span className="sr-only">Toggle language</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {data.map((lng) => (
-                            <DropdownMenuItem onClick={() => setLanguage(lng.value)} key={`language-${lng.value}`}>
-                                <Image src={lng.icon} alt="icon" width={30} height={10} />
-                                {lng.label}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )}
-        </>
+        <DrilldownMenuSub>
+            <DrilldownMenuSubTrigger isAnimated={false}>
+                <div className="w-full flex justify-between items-center me-4">
+                    <span>Đổi ngôn ngữ</span>
+                    <Image
+                        src={languages.find((lng) => lng.value === i18n.language)?.icon || ''}
+                        alt="icon"
+                        width={30}
+                        height={10}
+                    />
+                </div>
+            </DrilldownMenuSubTrigger>
+            <DrilldownMenuSubContent>
+                {languages.map((lng) => (
+                    <DrilldownMenuItem
+                        className={`space-x-2 ${lng.value === i18n.language ? 'bg-gray-100' : ''}`}
+                        onClick={() => setLanguage(lng.value)}
+                        key={`language-${lng.value}`}
+                        onCloseWhenClick={false}
+                    >
+                        <Image src={lng.icon} alt="icon" width={30} height={10} />
+                        <span>{lng.label}</span>
+                    </DrilldownMenuItem>
+                ))}
+            </DrilldownMenuSubContent>
+        </DrilldownMenuSub>
     );
 }

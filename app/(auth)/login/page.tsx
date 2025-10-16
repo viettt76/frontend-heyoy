@@ -1,22 +1,22 @@
 'use client';
 
-import Image from 'next/image';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import FormTextField from '@/components/shared/form-text-field';
+import Logo from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { loginService } from '@/lib/api/auth.service';
+import { paths } from '@/lib/constants';
+import { setAccessToken } from '@/store/features/auth/authSlice';
+import { setUserInfo } from '@/store/features/users/userSlice';
+import { useAppDispatch } from '@/store/hooks';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AxiosError } from 'axios';
 import { Lock, User } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import FormTextField from '@/components/shared/form-text-field';
-import { paths } from '@/lib/constants';
-import { useAppDispatch } from '@/store/hooks';
-import { setUserInfo } from '@/store/features/users/userSlice';
-import { setAccessToken } from '@/store/features/auth/authSlice';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
 const loginSchema = z.object({
     username: z.string().min(1, {
@@ -63,14 +63,7 @@ export default function LoginPage() {
     return (
         <div className="h-screen w-screen bg-input flex justify-center items-center">
             <div className="bg-background w-[40rem] -translate-y-10 flex min-h-96 rounded-lg relative">
-                <Image
-                    className="absolute top-4 left-6"
-                    priority
-                    src="/images/logo.png"
-                    width={60}
-                    height={60}
-                    alt="logo"
-                />
+                <Logo className="absolute top-4 left-6" />
                 <div className="flex-1 flex flex-col justify-center items-center max-xs:hidden">
                     <div className="text-3xl text-center">
                         Welcome to <span className="text-primary">Heyoy</span>

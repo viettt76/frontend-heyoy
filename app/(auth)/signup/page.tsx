@@ -1,19 +1,19 @@
 'use client';
 
-import Image from 'next/image';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import FormCheckGroup from '@/components/shared/form-check-group';
+import FormTextField from '@/components/shared/form-text-field';
+import Logo from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { signupService } from '@/lib/api/auth.service';
-import { AxiosError } from 'axios';
-import FormTextField from '@/components/shared/form-text-field';
-import { useRouter } from 'next/navigation';
-import { Lock, User, UserCircle } from 'lucide-react';
-import FormCheckGroup from '@/components/shared/form-check-group';
-import Link from 'next/link';
 import { UserGender } from '@/lib/enums';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AxiosError } from 'axios';
+import { Lock, User, UserCircle } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const formSchema = z
     .object({
@@ -93,7 +93,7 @@ export default function SignupPage() {
         <div className="h-screen w-screen bg-input flex justify-center items-center">
             <div className="bg-background w-[44rem] min-h-96 max-xs:h-[450px] rounded-lg">
                 <div className="flex-1 flex flex-col justify-center items-center relative">
-                    <Image className="absolute top-4 left-6" src="/images/logo.png" width={60} height={60} alt="logo" />
+                    <Logo className="absolute top-4 left-6" />
                 </div>
                 <div className="flex flex-col justify-center min-h-[28rem] space-y-4">
                     <div className="font-semibold text-2xl text-center text-primary">Signup</div>
