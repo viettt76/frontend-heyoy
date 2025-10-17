@@ -20,7 +20,7 @@ export default function ToggleLanguage() {
 
     return (
         <DrilldownMenuSub>
-            <DrilldownMenuSubTrigger isAnimated={false}>
+            <DrilldownMenuSubTrigger>
                 <div className="w-full flex justify-between items-center me-4">
                     <span>Đổi ngôn ngữ</span>
                     <Image
@@ -34,7 +34,7 @@ export default function ToggleLanguage() {
             <DrilldownMenuSubContent>
                 {languages.map((lng) => (
                     <DrilldownMenuItem
-                        className={`space-x-2 ${lng.value === i18n.language ? 'bg-gray-100' : ''}`}
+                        className={`space-x-2 ${lng.value === i18n.language ? 'bg-input' : ''}`}
                         onClick={() => setLanguage(lng.value)}
                         key={`language-${lng.value}`}
                         onCloseWhenClick={false}

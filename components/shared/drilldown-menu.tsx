@@ -23,6 +23,8 @@ import { useOnClickOutside } from 'usehooks-ts';
 // ======================================
 type DrilldownMenuContextType = {
     isOpen: boolean;
+    isAnimated: boolean;
+    setIsAnimated: Dispatch<SetStateAction<boolean>>;
     stack: RefObject<HTMLDivElement>[];
     goForward: (ref: RefObject<HTMLDivElement>) => void;
     goBack: () => void;
@@ -43,6 +45,8 @@ export function DrilldownMenu({ children, className }: HTMLAttributes<HTMLDivEle
     const [stack, setStack] = useState<RefObject<HTMLDivElement>[]>([rootContentRef]);
     const [heightTrigger, setHeightTrigger] = useState(0);
 
+    const [isAnimated, setIsAnimated] = useState(true);
+
     const open = useCallback(() => {
         setIsOpen(true);
         setStack([rootContentRef]);
@@ -61,10 +65,28 @@ export function DrilldownMenu({ children, className }: HTMLAttributes<HTMLDivEle
         setStack((prev) => prev.slice(0, -1));
     }, []);
 
+    useEffect(() => {
+        console.log('change length');
+        setIsAnimated(true);
+    }, [stack.length]);
+
+    console.log(isAnimated);
+
     useOnClickOutside(rootRef, close);
 
     const contextValue = useMemo(
-        () => ({ isOpen, stack, rootContentRef, goForward, goBack, open, close, setHeightTrigger }),
+        () => ({
+            isOpen,
+            isAnimated,
+            stack,
+            rootContentRef,
+            goForward,
+            goBack,
+            open,
+            close,
+            setHeightTrigger,
+            setIsAnimated,
+        }),
         [isOpen, stack, goForward, goBack, open, close],
     );
 
@@ -129,25 +151,27 @@ export const DrilldownMenuContent = React.memo(
         className?: string;
     }) => {
         const ctx = useContext(DrilldownMenuContext);
-        const [dir, setDir] = useState<'forward' | 'back'>('forward');
-        const [prevLen, setPrevLen] = useState<number>(ctx?.stack.length ?? 1);
-
-        useEffect(() => {
-            if (!ctx) return;
-            const next = ctx.stack.length;
-            setDir(next > prevLen ? 'forward' : 'back');
-            setPrevLen(next);
-        }, [ctx?.stack.length]);
 
         if (!ctx?.isOpen) return null;
 
+        // <motion.div
+        //         initial={{ x: 100, opacity: 0 }}
+        //         animate={{ x: 0, opacity: 1 }}
+        //         exit={{ x: -100, opacity: 0 }}
+        //         transition={{ duration: 0.25 }}
+        //         className={cn('relative', className)}
+        //         style={{ height: heightTrigger }}
+        //         ref={rootRef}
+        //     >
+        //         {children}
+        //     </motion.div>
         return (
             <motion.div
-                ref={ctx?.rootContentRef || null}
-                initial={{ x: 0, opacity: 0 }}
+                initial={{ x: 100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -100, opacity: 0 }}
                 transition={{ duration: 0.25 }}
+                ref={ctx?.rootContentRef || null}
                 className={cn(
                     'absolute w-64 rounded-md border bg-background p-2 shadow-md overflow-hidden',
                     positionClasses[position],
@@ -171,7 +195,6 @@ interface DrilldownMenuItemProps {
     children: ReactNode;
     unstyled?: boolean;
     onCloseWhenClick?: boolean;
-    isAnimated?: boolean;
     className?: string;
     onClick?: MouseEventHandler<HTMLDivElement>;
 }
@@ -181,7 +204,6 @@ export const DrilldownMenuItem = React.memo(
         children,
         unstyled = false,
         onCloseWhenClick = false,
-        isAnimated = true,
         className,
         onClick,
         ...props
@@ -193,39 +215,45 @@ export const DrilldownMenuItem = React.memo(
 
         useEffect(() => {
             if (ctx?.stack) setStack(ctx.stack);
+
+            // return () => ctx?.setIsAnimated(true);
         }, [ctx?.stack]);
 
         const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+            // ctx?.setIsAnimated(false);
             if (onClick) onClick(e);
             if (onCloseWhenClick) ctx?.close();
         };
 
         const Item = () => {
             const classNameCus = cn(
-                `${unstyled ? '' : 'flex cursor-pointer items-center rounded-md px-3 py-2 hover:bg-gray-100'}`,
+                `${unstyled ? '' : 'flex cursor-pointer items-center rounded-md px-3 py-2 hover:bg-input'}`,
                 className,
             );
 
             return (
-                <>
-                    {isAnimated ? (
-                        <motion.div
-                            initial={{ x: 100, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -100, opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className={classNameCus}
-                            onClick={handleClick}
-                            {...props}
-                        >
-                            {children}
-                        </motion.div>
-                    ) : (
-                        <div className={classNameCus} onClick={handleClick} {...props}>
-                            {children}
-                        </div>
-                    )}
-                </>
+                // <>
+                //     {ctx?.isAnimated ? (
+                //         <motion.div
+                //             initial={{ x: 100, opacity: 0 }}
+                //             animate={{ x: 0, opacity: 1 }}
+                //             exit={{ x: -100, opacity: 0 }}
+                //             transition={{ duration: 0.25 }}
+                //             className={classNameCus}
+                //             onClick={handleClick}
+                //             {...props}
+                //         >
+                //             {children}
+                //         </motion.div>
+                //     ) : (
+                //         <div className={classNameCus} onClick={handleClick} {...props}>
+                //             {children}
+                //         </div>
+                //     )}
+                // </>
+                <div className={classNameCus} onClick={handleClick} {...props}>
+                    {children}
+                </div>
             );
         };
 
@@ -282,62 +310,69 @@ export function DrilldownMenuSub({ children, className }: HTMLAttributes<HTMLDiv
 interface DrilldownMenuSubTriggerProps {
     children: ReactNode;
     className?: string;
-    isAnimated?: boolean;
 }
 
-export const DrilldownMenuSubTrigger = React.memo(
-    ({ children, className, isAnimated = true }: DrilldownMenuSubTriggerProps) => {
-        const ctx = useContext(DrilldownMenuContext);
-        const subCtx = useContext(DrilldownMenuSubCtx);
+export const DrilldownMenuSubTrigger = React.memo(({ children, className }: DrilldownMenuSubTriggerProps) => {
+    const ctx = useContext(DrilldownMenuContext);
+    const subCtx = useContext(DrilldownMenuSubCtx);
 
-        const [stack, setStack] = useState<RefObject<HTMLDivElement>[]>([]);
-        const [parentContentRef, setParentRef] = useState<RefObject<RefObject<HTMLDivElement>> | null>(null);
+    const [stack, setStack] = useState<RefObject<HTMLDivElement>[]>([]);
+    const [parentContentRef, setParentRef] = useState<RefObject<RefObject<HTMLDivElement>> | null>(null);
 
-        useEffect(() => {
-            if (ctx?.stack) setStack(ctx.stack);
-        }, [ctx?.stack]);
+    useEffect(() => {
+        if (ctx?.stack) setStack(ctx.stack);
+    }, [ctx?.stack]);
 
-        useEffect(() => {
-            if (subCtx?.parentContentRef) setParentRef(subCtx.parentContentRef);
-        }, [subCtx?.parentContentRef]);
+    useEffect(() => {
+        if (subCtx?.parentContentRef) setParentRef(subCtx.parentContentRef);
+    }, [subCtx?.parentContentRef]);
 
-        if (stack?.[stack.length - 1]?.current !== parentContentRef?.current?.current) {
-            return null;
-        }
+    if (stack?.[stack.length - 1]?.current !== parentContentRef?.current?.current) {
+        return null;
+    }
 
-        return (
-            <>
-                {isAnimated ? (
-                    <motion.div
-                        initial={{ x: 100, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -100, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className={cn(
-                            'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-gray-100',
-                            className,
-                        )}
-                        onClick={subCtx?.openSubMenu}
-                    >
-                        {children}
-                        <span>›</span>
-                    </motion.div>
-                ) : (
-                    <div
-                        className={cn(
-                            'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-gray-100',
-                            className,
-                        )}
-                        onClick={subCtx?.openSubMenu}
-                    >
-                        {children}
-                        <span>›</span>
-                    </div>
-                )}
-            </>
-        );
-    },
-);
+    return (
+        // <>
+        //     {ctx?.isAnimated ? (
+        //         <motion.div
+        //             initial={{ x: 100, opacity: 0 }}
+        //             animate={{ x: 0, opacity: 1 }}
+        //             exit={{ x: -100, opacity: 0 }}
+        //             transition={{ duration: 0.25 }}
+        //             className={cn(
+        //                 'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-input',
+        //                 className,
+        //             )}
+        //             onClick={subCtx?.openSubMenu}
+        //         >
+        //             {children}
+        //             <span>›</span>
+        //         </motion.div>
+        //     ) : (
+        //         <div
+        //             className={cn(
+        //                 'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-input',
+        //                 className,
+        //             )}
+        //             onClick={subCtx?.openSubMenu}
+        //         >
+        //             {children}
+        //             <span>›</span>
+        //         </div>
+        //     )}
+        // </>
+        <div
+            className={cn(
+                'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-input',
+                className,
+            )}
+            onClick={subCtx?.openSubMenu}
+        >
+            {children}
+            <span>›</span>
+        </div>
+    );
+});
 
 // #region Sub Content
 // ======================================
@@ -345,8 +380,18 @@ export const DrilldownMenuSubContent = React.memo(({ children, className }: HTML
     const subCtx = useContext(DrilldownMenuSubCtx);
 
     return (
-        <div ref={subCtx?.subContentRef} className={className}>
+        // <div ref={subCtx?.subContentRef} className={className}>
+        //     {children}
+        // </div>
+        <motion.div
+            ref={subCtx?.subContentRef}
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -100, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className={className}
+        >
             {children}
-        </div>
+        </motion.div>
     );
 });

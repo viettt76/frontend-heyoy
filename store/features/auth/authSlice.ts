@@ -18,13 +18,13 @@ const authSlice = createSlice({
             state.accessToken = action.payload;
             state.isAuthenticated = true;
         },
-        logout: (state) => {
+        clearToken: (state) => {
             state.accessToken = null;
             state.isAuthenticated = false;
         },
     },
 });
 
-export const { setAccessToken, logout } = authSlice.actions;
+export const { setAccessToken, clearToken } = authSlice.actions;
 
 export default authSlice.reducer;

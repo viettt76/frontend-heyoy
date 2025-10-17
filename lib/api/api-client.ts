@@ -6,7 +6,6 @@ import axios, { HttpStatusCode } from 'axios';
 
 class AxiosCustom {
     private instance: AxiosInstance;
-    private logout: (() => void) | null = null;
     private store!: AppStore;
     private accessToken!: string;
 
@@ -27,12 +26,9 @@ class AxiosCustom {
         this.instance = instance;
     }
 
-    public init(store: EnhancedStore, accessToken: string, logoutHandler: () => void) {
-        this.logout = logoutHandler;
+    public init(store: EnhancedStore, accessToken: string) {
         this.store = store;
         this.accessToken = accessToken;
-
-        console.log(accessToken);
 
         this.attachInterceptors();
     }
@@ -54,24 +50,13 @@ class AxiosCustom {
             (response: AxiosResponse) => response,
             (error: AxiosError) => {
                 const { response } = error;
-
                 if (response?.status === 401 && !this.isRefreshing) {
                     return this.handleTokenRefresh(error);
-                }
-
-                if (response?.status === HttpStatusCode.Forbidden) {
-                    if (this.logout) {
-                        this.logout();
-                    }
                 }
 
                 throw error;
             },
         );
-    }
-
-    public get getLogout() {
-        return this.logout;
     }
 
     async handleTokenRefresh(error: AxiosError) {
@@ -103,11 +88,6 @@ class AxiosCustom {
                 this.failedQueue.forEach((req) => req.reject(refreshError));
                 this.failedQueue = [];
 
-                //call logout
-                if (this.logout) {
-                    this.logout();
-                }
-
                 throw refreshError;
             } finally {
                 this.isRefreshing = false;
@@ -115,12 +95,14 @@ class AxiosCustom {
         } else {
             return new Promise((resolve, reject) => {
                 this.failedQueue.push({ resolve, reject });
-            }).then((token: any) => {
-                if (originalRequest) {
-                    originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
-                    return this.instance(originalRequest);
-                }
-            });
+            })
+                .then((token: any) => {
+                    if (originalRequest) {
+                        originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
+                        return this.instance(originalRequest);
+                    }
+                })
+                .catch(Promise.reject);
         }
     }
 
@@ -140,7 +122,7 @@ class AxiosCustom {
                 .then((response) => resolve(integrity ? response : response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -156,7 +138,7 @@ class AxiosCustom {
                 .then((response) => resolve(integrity ? response : response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -172,7 +154,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -188,7 +170,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -204,7 +186,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
