@@ -11,11 +11,7 @@ export default function ToggleTheme() {
     const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
     return (
-        <DrilldownMenuItem
-            unstyled={true}
-            isAnimated={false}
-            className="flex items-center justify-between rounded-md px-3 py-2"
-        >
+        <DrilldownMenuItem unstyled={true} className="flex items-center justify-between rounded-md px-3 py-2">
             <span>Đổi chủ đề</span>
             <button
                 onClick={toggleTheme}

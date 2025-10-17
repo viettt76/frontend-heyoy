@@ -6,9 +6,9 @@ import axios, { HttpStatusCode } from 'axios';
 
 class AxiosCustom {
     private instance: AxiosInstance;
-    private logout: (() => void) | null = null;
     private store!: AppStore;
     private accessToken!: string;
+    private handleLogout!: () => void;
 
     private isRefreshing = false;
     private failedQueue: Array<{ resolve: Function; reject: Function }> = [];
@@ -18,6 +18,7 @@ class AxiosCustom {
             baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api`,
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${this.accessToken}`,
             },
             timeout: 30 * 1000,
             withCredentials: true,
@@ -27,12 +28,12 @@ class AxiosCustom {
         this.instance = instance;
     }
 
-    public init(store: EnhancedStore, accessToken: string, logoutHandler: () => void) {
-        this.logout = logoutHandler;
+    public init(store: EnhancedStore, accessToken: string, handleLogout: () => void) {
         this.store = store;
         this.accessToken = accessToken;
+        this.handleLogout = handleLogout;
 
-        console.log(accessToken);
+        this.instance.defaults.headers.Authorization = `Bearer ${accessToken}`;
 
         this.attachInterceptors();
     }
@@ -41,9 +42,6 @@ class AxiosCustom {
         // Request interceptor
         this.instance.interceptors.request.use(
             (config) => {
-                if (this.accessToken) {
-                    config.headers.Authorization = `Bearer ${this.accessToken}`;
-                }
                 return config;
             },
             (error) => Promise.reject(error),
@@ -54,24 +52,13 @@ class AxiosCustom {
             (response: AxiosResponse) => response,
             (error: AxiosError) => {
                 const { response } = error;
-
-                if (response?.status === 401 && !this.isRefreshing) {
+                if (response?.status === HttpStatusCode.Unauthorized) {
                     return this.handleTokenRefresh(error);
-                }
-
-                if (response?.status === HttpStatusCode.Forbidden) {
-                    if (this.logout) {
-                        this.logout();
-                    }
                 }
 
                 throw error;
             },
         );
-    }
-
-    public get getLogout() {
-        return this.logout;
     }
 
     async handleTokenRefresh(error: AxiosError) {
@@ -81,16 +68,21 @@ class AxiosCustom {
             return Promise.reject(error);
         }
 
+        if (originalRequest.url?.includes('/auth/refresh')) {
+            return Promise.reject(error);
+        }
+
         if (!this.isRefreshing) {
             this.isRefreshing = true;
 
             try {
                 const { data } = await this.instance.post('/auth/refresh');
 
-                const newToken = data.accessToken;
+                const newToken = data.data?.accessToken;
                 this.store.dispatch(setAccessToken(newToken));
 
                 if (newToken) {
+                    this.instance.defaults.headers.Authorization = `Bearer ${newToken}`;
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
                     // Retry the failed requests
@@ -103,11 +95,7 @@ class AxiosCustom {
                 this.failedQueue.forEach((req) => req.reject(refreshError));
                 this.failedQueue = [];
 
-                //call logout
-                if (this.logout) {
-                    this.logout();
-                }
-
+                this.handleLogout();
                 throw refreshError;
             } finally {
                 this.isRefreshing = false;
@@ -115,12 +103,14 @@ class AxiosCustom {
         } else {
             return new Promise((resolve, reject) => {
                 this.failedQueue.push({ resolve, reject });
-            }).then((token: any) => {
-                if (originalRequest) {
-                    originalRequest.headers.Authorization = `Bearer ${token.access_token}`;
-                    return this.instance(originalRequest);
-                }
-            });
+            })
+                .then((token: any) => {
+                    if (originalRequest) {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return this.instance(originalRequest);
+                    }
+                })
+                .catch(Promise.reject);
         }
     }
 
@@ -140,7 +130,7 @@ class AxiosCustom {
                 .then((response) => resolve(integrity ? response : response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -156,7 +146,7 @@ class AxiosCustom {
                 .then((response) => resolve(integrity ? response : response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -172,7 +162,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -188,7 +178,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }
@@ -204,7 +194,7 @@ class AxiosCustom {
                 .then((response) => resolve(response.data))
                 .catch((error: AxiosError) => {
                     if (error.response) {
-                        reject(error.response.data);
+                        reject(error.response);
                     } else {
                         reject(error);
                     }

@@ -1,6 +1,5 @@
 'use client';
 import { cn } from '@/lib/utils/tailwind-merge';
-import { motion } from 'framer-motion';
 import React, {
     createContext,
     Dispatch,
@@ -64,7 +63,16 @@ export function DrilldownMenu({ children, className }: HTMLAttributes<HTMLDivEle
     useOnClickOutside(rootRef, close);
 
     const contextValue = useMemo(
-        () => ({ isOpen, stack, rootContentRef, goForward, goBack, open, close, setHeightTrigger }),
+        () => ({
+            isOpen,
+            stack,
+            rootContentRef,
+            goForward,
+            goBack,
+            open,
+            close,
+            setHeightTrigger,
+        }),
         [isOpen, stack, goForward, goBack, open, close],
     );
 
@@ -129,25 +137,11 @@ export const DrilldownMenuContent = React.memo(
         className?: string;
     }) => {
         const ctx = useContext(DrilldownMenuContext);
-        const [dir, setDir] = useState<'forward' | 'back'>('forward');
-        const [prevLen, setPrevLen] = useState<number>(ctx?.stack.length ?? 1);
-
-        useEffect(() => {
-            if (!ctx) return;
-            const next = ctx.stack.length;
-            setDir(next > prevLen ? 'forward' : 'back');
-            setPrevLen(next);
-        }, [ctx?.stack.length]);
 
         if (!ctx?.isOpen) return null;
 
         return (
-            <motion.div
-                ref={ctx?.rootContentRef || null}
-                initial={{ x: 0, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -100, opacity: 0 }}
-                transition={{ duration: 0.25 }}
+            <div
                 className={cn(
                     'absolute w-64 rounded-md border bg-background p-2 shadow-md overflow-hidden',
                     positionClasses[position],
@@ -160,7 +154,7 @@ export const DrilldownMenuContent = React.memo(
                     </button>
                 ) : null}
                 {children}
-            </motion.div>
+            </div>
         );
     },
 );
@@ -171,7 +165,6 @@ interface DrilldownMenuItemProps {
     children: ReactNode;
     unstyled?: boolean;
     onCloseWhenClick?: boolean;
-    isAnimated?: boolean;
     className?: string;
     onClick?: MouseEventHandler<HTMLDivElement>;
 }
@@ -181,7 +174,6 @@ export const DrilldownMenuItem = React.memo(
         children,
         unstyled = false,
         onCloseWhenClick = false,
-        isAnimated = true,
         className,
         onClick,
         ...props
@@ -202,30 +194,14 @@ export const DrilldownMenuItem = React.memo(
 
         const Item = () => {
             const classNameCus = cn(
-                `${unstyled ? '' : 'flex cursor-pointer items-center rounded-md px-3 py-2 hover:bg-gray-100'}`,
+                `${unstyled ? '' : 'flex cursor-pointer items-center rounded-md px-3 py-2 hover:bg-input'}`,
                 className,
             );
 
             return (
-                <>
-                    {isAnimated ? (
-                        <motion.div
-                            initial={{ x: 100, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -100, opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className={classNameCus}
-                            onClick={handleClick}
-                            {...props}
-                        >
-                            {children}
-                        </motion.div>
-                    ) : (
-                        <div className={classNameCus} onClick={handleClick} {...props}>
-                            {children}
-                        </div>
-                    )}
-                </>
+                <div className={classNameCus} onClick={handleClick} {...props}>
+                    {children}
+                </div>
             );
         };
 
@@ -282,62 +258,40 @@ export function DrilldownMenuSub({ children, className }: HTMLAttributes<HTMLDiv
 interface DrilldownMenuSubTriggerProps {
     children: ReactNode;
     className?: string;
-    isAnimated?: boolean;
 }
 
-export const DrilldownMenuSubTrigger = React.memo(
-    ({ children, className, isAnimated = true }: DrilldownMenuSubTriggerProps) => {
-        const ctx = useContext(DrilldownMenuContext);
-        const subCtx = useContext(DrilldownMenuSubCtx);
+export const DrilldownMenuSubTrigger = React.memo(({ children, className }: DrilldownMenuSubTriggerProps) => {
+    const ctx = useContext(DrilldownMenuContext);
+    const subCtx = useContext(DrilldownMenuSubCtx);
 
-        const [stack, setStack] = useState<RefObject<HTMLDivElement>[]>([]);
-        const [parentContentRef, setParentRef] = useState<RefObject<RefObject<HTMLDivElement>> | null>(null);
+    const [stack, setStack] = useState<RefObject<HTMLDivElement>[]>([]);
+    const [parentContentRef, setParentRef] = useState<RefObject<RefObject<HTMLDivElement>> | null>(null);
 
-        useEffect(() => {
-            if (ctx?.stack) setStack(ctx.stack);
-        }, [ctx?.stack]);
+    useEffect(() => {
+        if (ctx?.stack) setStack(ctx.stack);
+    }, [ctx?.stack]);
 
-        useEffect(() => {
-            if (subCtx?.parentContentRef) setParentRef(subCtx.parentContentRef);
-        }, [subCtx?.parentContentRef]);
+    useEffect(() => {
+        if (subCtx?.parentContentRef) setParentRef(subCtx.parentContentRef);
+    }, [subCtx?.parentContentRef]);
 
-        if (stack?.[stack.length - 1]?.current !== parentContentRef?.current?.current) {
-            return null;
-        }
+    if (stack?.[stack.length - 1]?.current !== parentContentRef?.current?.current) {
+        return null;
+    }
 
-        return (
-            <>
-                {isAnimated ? (
-                    <motion.div
-                        initial={{ x: 100, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -100, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className={cn(
-                            'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-gray-100',
-                            className,
-                        )}
-                        onClick={subCtx?.openSubMenu}
-                    >
-                        {children}
-                        <span>›</span>
-                    </motion.div>
-                ) : (
-                    <div
-                        className={cn(
-                            'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-gray-100',
-                            className,
-                        )}
-                        onClick={subCtx?.openSubMenu}
-                    >
-                        {children}
-                        <span>›</span>
-                    </div>
-                )}
-            </>
-        );
-    },
-);
+    return (
+        <div
+            className={cn(
+                'flex cursor-pointer items-center justify-between rounded-md px-3 py-2 hover:bg-input',
+                className,
+            )}
+            onClick={subCtx?.openSubMenu}
+        >
+            {children}
+            <span>›</span>
+        </div>
+    );
+});
 
 // #region Sub Content
 // ======================================

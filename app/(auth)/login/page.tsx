@@ -1,14 +1,11 @@
 'use client';
 
-import FormTextField from '@/components/shared/form-text-field';
+import FormTextField from '@/components/forms/form-text-field';
 import Logo from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { loginService } from '@/lib/api/auth.service';
 import { paths } from '@/lib/constants';
-import { setAccessToken } from '@/store/features/auth/authSlice';
-import { setUserInfo } from '@/store/features/users/userSlice';
-import { useAppDispatch } from '@/store/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AxiosError } from 'axios';
 import { Lock, User } from 'lucide-react';
@@ -39,16 +36,10 @@ export default function LoginPage() {
     });
 
     const router = useRouter();
-    const dispatch = useAppDispatch();
 
     const onSubmit = async (values: z.infer<typeof loginSchema>) => {
         try {
-            const {
-                data: { accessToken, user },
-            } = await loginService(values);
-
-            dispatch(setAccessToken(accessToken));
-            dispatch(setUserInfo(user));
+            await loginService(values);
 
             router.push(paths.home);
         } catch (error) {
@@ -91,7 +82,7 @@ export default function LoginPage() {
                                 />
                             </div>
                             <Button className="w-3/5 mt-6 py-1 bg-primary text-background rounded-full" type="submit">
-                                {t('common:test')}
+                                {t('auth:login')}
                             </Button>
                             <div className="text-sm mt-2">
                                 Bạn chưa có tài khoản?
