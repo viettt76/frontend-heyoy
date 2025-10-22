@@ -29,5 +29,6 @@ const authSlice = createSlice({
 export const { setAccessToken, clearToken } = authSlice.actions;
 
 export const isAuthenticatedSelector = (state: RootState) => state.auth.isAuthenticated;
+export const accessTokenSelector = (state: RootState) => state.auth.accessToken;
 
 export default authSlice.reducer;

@@ -1,7 +1,7 @@
 'use client';
 
-import FormCheckGroup from '@/components/shared/form-check-group';
-import FormTextField from '@/components/shared/form-text-field';
+import FormCheckGroup from '@/components/forms/form-check-group';
+import FormTextField from '@/components/forms/form-text-field';
 import Logo from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
