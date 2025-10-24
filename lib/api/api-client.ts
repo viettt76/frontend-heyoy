@@ -3,6 +3,7 @@ import { setAccessToken } from '@/store/features/auth/authSlice';
 import { EnhancedStore } from '@reduxjs/toolkit';
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios, { HttpStatusCode } from 'axios';
+import { envs } from '../constants';
 
 class AxiosCustom {
     private instance: AxiosInstance;
@@ -15,7 +16,7 @@ class AxiosCustom {
 
     constructor() {
         const config: AxiosRequestConfig = {
-            baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api`,
+            baseURL: `${envs.baseUrl}`,
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${this.accessToken}`,

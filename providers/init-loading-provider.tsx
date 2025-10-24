@@ -8,11 +8,12 @@ import { clearToken, setAccessToken } from '@/store/features/auth/authSlice';
 import { clearUser, fetchCurrentUser } from '@/store/features/users/userSlice';
 import { useAppDispatch } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 export default function InitLoadingProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const dispatch = useAppDispatch();
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const handleLogout = () => {
         dispatch(clearToken());
@@ -32,11 +33,15 @@ export default function InitLoadingProvider({ children }: { children: ReactNode 
                 dispatch(fetchCurrentUser());
             } catch (error) {
                 console.error(error);
+            } finally {
+                setIsInitialized(true);
             }
         };
 
         initAuth();
     }, [dispatch]);
+
+    if (!isInitialized) return null;
 
     return children;
 }

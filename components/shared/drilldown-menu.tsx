@@ -143,7 +143,7 @@ export const DrilldownMenuContent = React.memo(
         return (
             <div
                 className={cn(
-                    'absolute w-64 rounded-md border bg-background p-2 shadow-md overflow-hidden',
+                    'absolute z-100 w-64 rounded-md border bg-background p-2 shadow-md overflow-hidden',
                     positionClasses[position],
                     className,
                 )}

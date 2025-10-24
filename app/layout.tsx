@@ -1,9 +1,10 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import { ThemeProvider } from '@/providers/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
 import I18nProvider from '@/providers/i18n-provider';
 import QueryProvider from '@/providers/query-provider';
 import StoreProvider from '@/providers/store-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
 const geistSans = Geist({
@@ -32,7 +33,10 @@ export default async function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                     <I18nProvider>
                         <QueryProvider>
-                            <StoreProvider>{children}</StoreProvider>
+                            <StoreProvider>
+                                <Toaster position="top-right" richColors />
+                                {children}
+                            </StoreProvider>
                         </QueryProvider>
                     </I18nProvider>
                 </ThemeProvider>

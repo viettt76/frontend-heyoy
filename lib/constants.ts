@@ -16,3 +16,7 @@ export const languages = [
         icon: '/images/flags/ic-flag-en.svg',
     },
 ];
+
+export const envs = {
+    baseUrl: process.env.NEXT_PUBLIC_API_URL,
+};

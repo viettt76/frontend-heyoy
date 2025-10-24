@@ -1,5 +1,6 @@
 'use client';
 
+import { envs } from '@/lib/constants';
 import { accessTokenSelector } from '@/store/features/auth/authSlice';
 import { useAppSelector } from '@/store/hooks';
 import { SocketContextType } from '@/types/socket';
@@ -16,7 +17,7 @@ export default function SocketProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (!accessToken) return;
 
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL, {
+        const newSocket = io(envs.baseUrl, {
             autoConnect: false,
             extraHeaders: {
                 Authorization: `Bearer ${accessToken}`,
